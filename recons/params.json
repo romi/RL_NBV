@@ -1,0 +1,14 @@
+{"gt_path": "/home/david/data/dataset_arabidopsis3d/arabidopsis_0_gt.ply",
+ "scanner": {"w": 800, "h": 1080, "f": 24},
+ "plant_id": 0,  
+ "traj"   : {"z0": 50, "R": 50, "N_theta": 20, "N_phi": 5},
+ "sc"     : {"voxel_size": 0.4, "n_dilation": 3},
+ "train"  : { "nb_episodes": 5000,
+              "batch_size": 64,
+              "with_per": false,
+              "epsilon" : 0.8,
+              "epsilon_decay": 0.8,
+              "save_interval": 20,
+	      "dueling" : false
+             }
+}

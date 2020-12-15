@@ -9,12 +9,8 @@ The DQN part is inspired from the work of Daryl Perrelta https://github.com/dary
 
 You need to install numpy, imageio, json, open3d, pyopencl, scipy, scikit-image, opencv, networkx, tqdm, bisect, flask, tensorflow, urllib
 
-* CGAL wrapper
-
-You need to install the CGAL library (libcgal-dev) and its python wrapper romicgal https://github.com/romi/romicgal 
-
 * Blender
-Download the executable for Blender (2.90.0)
+Download the executable for Blender (2.90.0) and change the hard path in scanner/vscanner_launch.sh
 
 ##Preparation
-Change the hard path in scan.py for data_dir
+Change the hard path in scanner/vscanner_blender.py for data_dir
