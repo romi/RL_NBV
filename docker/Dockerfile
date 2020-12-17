@@ -1,5 +1,14 @@
 FROM ubuntu:20.04
 
+ARG USER_NAME=scanner
+ARG USER_ID=1000
+ARG GROUP_NAME=scanner
+ARG GROUP_ID=1000
+
+# Add Blender to system's PATH
+ENV PATH=$PATH:"/home/${USER_NAME}}/.local/bin"
+ENV PATH="/opt/blender:${PATH}"
+
 # Change Shell to 'bash', default is 'sh'
 SHELL [ "/bin/bash", "-c" ]
 
@@ -25,17 +34,19 @@ RUN mkdir -p /etc/OpenCL/vendors && \
 ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
 
-WORKDIR /home/wd
+# Create a non-root user and give it rights over "home folder"
+RUN addgroup --gid $GROUP_ID $GROUP_NAME && \
+    adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID $USER_NAME && \
+    chown -R ${USER_NAME}: /home/${USER_NAME}
 
+# Download Blender2.91 and move it to /opt/blender
 ENV BLENDER_URL=https://download.blender.org/release/Blender2.91/blender-2.91.0-linux64.tar.xz
 RUN wget --progress=bar $BLENDER_URL && \
     tar -xf blender-2.91.0-linux64.tar.xz && \
     mv blender-2.91.0-linux64 /opt/blender && \
     rm blender-2.91.0-linux64.tar.xz
 
-ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"/opt/blender/lib"
-
-# Install python packages
+# Install python packages needed for RL_NBV
 RUN python -m pip install numpy imageio open3d pyopencl scipy scikit-image opencv-python networkx tqdm flask flask_restful tensorflow
 
 # Copy python dependencies in Blender python's site package
@@ -48,11 +59,16 @@ RUN cp -r /usr/local/lib/python3.8/dist-packages/werkzeug/ /opt/blender/2.91/pyt
 RUN cp -r /usr/local/lib/python3.8/dist-packages/jinja2/ /opt/blender/2.91/python/lib/python3.7/site-packages/
 RUN cp -r /usr/local/lib/python3.8/dist-packages/imageio/ /opt/blender/2.91/python/lib/python3.7/site-packages/
 
+# Define Working Directory
+WORKDIR /home/${USER_NAME}
 
+# Change to the non-root user
+USER ${USER_NAME}
+
+# clone the RL_NBV repository
+ARG RL_NBV_BRANCH=main
 RUN git clone https://github.com/romi/RL_NBV.git && \
     cd RL_NBV/ && \
-    git checkout Feat/Dockerization
-    #cd ./vscanner_launch.sh
+    git checkout $RL_NBV_BRANCH
 
-EXPOSE 5000    
-# CMD [ "/bin/bash", "-c" ]
+EXPOSE 5000
