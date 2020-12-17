@@ -6,7 +6,10 @@ SHELL [ "/bin/bash", "-c" ]
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1-mesa-dev \
     libxi6 \
+    libxrender1 \
+    vim \
     wget \
+    git \
     xz-utils \
     python3-pip \
     gcc python3-dev \
@@ -30,13 +33,26 @@ RUN wget --progress=bar $BLENDER_URL && \
     mv blender-2.91.0-linux64 /opt/blender && \
     rm blender-2.91.0-linux64.tar.xz
 
-ENV LD_LIBRARY_PATH "/opt/blender/lib"
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"/opt/blender/lib"
 
 # Install python packages
-RUN python -m pip install numpy imageio open3d pyopencl scipy scikit-image opencv-python networkx tqdm flask tensorflow
+RUN python -m pip install numpy imageio open3d pyopencl scipy scikit-image opencv-python networkx tqdm flask flask_restful tensorflow
 
-RUN git clone https://github.com/romi/RL_NBV.git
-#    #cd RL_NBV/scanner/ && \
-#    # ./vscanner_launch.sh
-    
+# Copy python dependencies in Blender python's site package
+RUN cp -r /usr/local/lib/python3.8/dist-packages/flask_restful/ /opt/blender/2.91/python/lib/python3.7/site-packages/
+RUN cp -r /usr/local/lib/python3.8/dist-packages/markupsafe/ /opt/blender/2.91/python/lib/python3.7/site-packages/
+RUN cp -r /usr/local/lib/python3.8/dist-packages/flask/ /opt/blender/2.91/python/lib/python3.7/site-packages/
+RUN cp -r /usr/local/lib/python3.8/dist-packages/itsdangerous/ /opt/blender/2.91/python/lib/python3.7/site-packages/
+RUN cp -r /usr/local/lib/python3.8/dist-packages/click/ /opt/blender/2.91/python/lib/python3.7/site-packages/
+RUN cp -r /usr/local/lib/python3.8/dist-packages/werkzeug/ /opt/blender/2.91/python/lib/python3.7/site-packages/
+RUN cp -r /usr/local/lib/python3.8/dist-packages/jinja2/ /opt/blender/2.91/python/lib/python3.7/site-packages/
+RUN cp -r /usr/local/lib/python3.8/dist-packages/imageio/ /opt/blender/2.91/python/lib/python3.7/site-packages/
+
+
+RUN git clone https://github.com/romi/RL_NBV.git && \
+    cd RL_NBV/ && \
+    git checkout Feat/Dockerization
+    #cd ./vscanner_launch.sh
+
+EXPOSE 5000    
 # CMD [ "/bin/bash", "-c" ]
