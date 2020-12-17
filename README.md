@@ -27,12 +27,15 @@ Clone this repository and run the `build.sh` script in the `docker` directory.
     ./build.sh
 ```
 This will create by default a docker image `rl_nbv:latest`.
+
 Inside the docker image, a user is created and named as the one currently used by your system.
+
 If you want more build options (specific branches, tags...etc), type `./build.sh --help`.
 
 ## Run the docker image
 In the docker directory, you will find also a script named `run.sh`.
 By default, a docker container will run with this following port mapping (5000:5000). You can also map a volume with `-v` option.
+
 E.g. `./run.sh -v /abs/host/dir:/abs/container/dir`
 
 To show more options, type `./run.sh --help`
