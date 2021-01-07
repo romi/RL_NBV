@@ -22,9 +22,7 @@ You have to prepare the dataset and install Docker in your system to build and r
 ## Prepare dataset
 
 Run 
-...
-wget https://media.romi-project.eu/data/dataset_arabidopsis3d.zip
-...
+`wget https://media.romi-project.eu/data/dataset_arabidopsis3d.zip`
 
 and unzip the folder to ~/data/
 
@@ -51,24 +49,28 @@ E.g. `./run.sh -v /home/(username)/data/dataset_arabidopsis3d:/home/(username)/d
 To show more options, type `./run.sh --help`
 
 In the container, launch the virtual scanner
-...
+```
+
    cd RL_NBV/scanner
    sh vscanner_launch.sh
-...
+```
 
 ## Connect to the docker image and launch the learning
 
 In another shell, run
-...
+```
+
 docker container ls 
-...
+```
 and get the id of the container where the scanner runs.
 Then connect to the same container:
-...
+```
+
 docker exec -it container_id /bin/bash
-...
+```
 and run the learning
-...
+```
+
 cd RL_NBV/recons
 python3 train.py
-...
+```
