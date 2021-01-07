@@ -3,7 +3,7 @@ Reinforcement learning for next best view.
 
 The DQN part is inspired from the work of Daryl Perrelta https://github.com/darylperalta/ScanRL, and the space carving is from the work of Timothée Wintz https://github.com/romi/space-carving.
 
-##Requirements
+# Requirements without docker
 
 * Python packages
 
@@ -16,7 +16,17 @@ Download the executable for Blender (2.90.0) and change the hard path in scanner
 Change the hard path in scanner/vscanner_blender.py for data_dir
 
 # Build and run with Docker
-You have to install Docker in your system to build and run the docker image
+
+You have to prepare the dataset and install Docker in your system to build and run the docker image
+
+## Prepare dataset
+
+Run 
+...
+wget https://media.romi-project.eu/data/dataset_arabidopsis3d.zip
+...
+
+and unzip the folder to ~/data/
 
 ## Build the docker image
 Clone this repository and run the `build.sh` script in the `docker` directory.
@@ -32,10 +42,33 @@ Inside the docker image, a user is created and named as the one currently used b
 
 If you want more build options (specific branches, tags...etc), type `./build.sh --help`.
 
-## Run the docker image
+## Run the docker image and launch the virtual scanner
 In the docker directory, you will find also a script named `run.sh`.
 By default, a docker container will run with this following port mapping (5000:5000). You can also map a volume with `-v` option.
 
-E.g. `./run.sh -v /abs/host/dir:/abs/container/dir`
+E.g. `./run.sh -v /home/(username)/data/dataset_arabidopsis3d:/home/(username)/data/dataset_arabidopsis3d`
 
 To show more options, type `./run.sh --help`
+
+In the container, launch the virtual scanner
+...
+   cd RL_NBV/scanner
+   sh vscanner_launch.sh
+...
+
+## Connect to the docker image and launch the learning
+
+In another shell, run
+...
+docker container ls 
+...
+and get the id of the container where the scanner runs.
+Then connect to the same container:
+...
+docker exec -it container_id /bin/bash
+...
+and run the learning
+...
+cd RL_NBV/recons
+python3 train.py
+...
