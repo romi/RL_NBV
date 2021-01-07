@@ -9,7 +9,6 @@ from PIL import Image
 import requests
 from io import BytesIO
 import os
-from lettucethink.db.fsdb import DB
 import json
 import urllib.request
 
@@ -31,7 +30,7 @@ class virtual_scan():
         self.f = 24 #focal length in mm
         
         self.localhost = "http://localhost:5000/" 
-        if (path==None): self.path = '/home/david/data/scans'         
+        if (path==None): self.path = 'data/scans'         
         else: self.path=path
             
         if w is None:
@@ -95,12 +94,9 @@ class virtual_scan():
         if ry is None:
             ry = self.ry
 
-        #Save to database
-        self.create(self.path)
-        database = DB(self.path)
-        scan = database.create_scan(scan_name)
-        fileset = scan.get_fileset('images', create = True)
-       
+        os.makedirs(self.path+'/'+scan_name+'/images', exist_ok=True)
+        os.makedirs(self.path+'/'+scan_name+'/metadata', exist_ok=True)
+        
         d_theta = 2 * np.pi/N
         c = self.load_im(n)
 
@@ -110,20 +106,17 @@ class virtual_scan():
             rz = d_theta * i * 180/np.pi + 90 #camera pan
             im = self.render(x, y, z, rx, ry, rz) #call blender 
         
-            file = fileset.create_file('%03d'%i)
-            file.write_image('png',im)
+            cv2.imwrite(self.path+'/'+scan_name+'/images/%03d.png'%i,im)
             url_part = 'camera_intrinsics'
             camera_model = json.loads(urllib.request.urlopen(self.localhost + url_part).read().decode('utf-8'))
             url_part = 'camera_extrinsics'
             rt = json.loads(urllib.request.urlopen(self.localhost + url_part).read().decode('utf-8'))
             metadata = {"pose": [x, y, z, rx * np.pi/180, rz * np.pi/180], "camera_model":camera_model, **rt}            
-            file.set_metadata(metadata)
+            json.dump(metadata, open(self.path+'/'+scan_name+'/images/%03d.png'%i,'w'))
         
     def circle_around_masks(self, n, scan_name, N=None, R=None, z = None, rx = None, ry = None):
-        self.create(self.path)
-        database = DB(self.path)
-        scan = database.create_scan(scan_name)
-        fileset = scan.get_fileset('images', create = True)
+        os.makedirs(self.path+'/'+scan_name+'/images', exist_ok=True)
+        os.makedirs(self.path+'/'+scan_name+'/metadata', exist_ok=True)
        
         d_theta = 2 * np.pi/N
         
@@ -134,60 +127,12 @@ class virtual_scan():
             rz = d_theta * i * 180/np.pi + 90 #camera pan
             im = self.get_mask(x, y, z, rx, ry, rz) #call blender 
 
-            file = fileset.create_file('%03d'%i)
-            file.write_image('png',im)
+            cv2.imwrite(self.path+'/'+scan_name+'/images/%03d.png'%i,im)
             url_part = 'camera_intrinsics'
             camera_model = json.loads(urllib.request.urlopen(self.localhost + url_part).read().decode('utf-8'))
             url_part = 'camera_extrinsics'
             rt = json.loads(urllib.request.urlopen(self.localhost + url_part).read().decode('utf-8'))
             metadata = {"pose": [x, y, z, rx * np.pi/180, rz * np.pi/180], "camera_model":camera_model, **rt}            
-            file.set_metadata(metadata)
+            json.dump(metadata, open(self.path+'/'+scan_name+'/metadata/%03d.png'%i,'w'))
 
 
-    def circle_2cams(self,n, R, phi1, phi2, z0, N, scan_name):
-      self.create(self.path)
-      database = DB(self.path)
-      scan = database.create_scan(scan_name)
-      fileset = scan.get_fileset('images', create = True)
-
-      c = self.load_im(n)
-
-      dtheta=2*np.pi/N
-      ry=0
-      z0=50
-
-      for i in range(N):
-         print(i)
-         x = R *np.cos(phi1) * np.cos(i*dtheta) #x pos of camera
-         y = R *np.cos(phi1) * np.sin(i*dtheta) #y pos of camera   
-         z = z0 + R *np.sin(phi1)
-         rx = - phi1*180/np.pi  + 90 #camera tilt
-         rz = i*dtheta * 180/np.pi + 90 
-         im = self.get_mask(x, y, z, rx, ry, rz) #call blender 
-
-         file = fileset.create_file('cam1_%03d'%i)
-         file.write_image('png',im)
-
-         url_part = 'camera_intrinsics'
-         camera_model = json.loads(urllib.request.urlopen(self.localhost + url_part).read().decode('utf-8'))
-         url_part = 'camera_extrinsics'
-         rt = json.loads(urllib.request.urlopen(self.localhost + url_part).read().decode('utf-8'))
-         metadata = {"pose": [x, y, z, rx * np.pi/180, rz * np.pi/180], "camera_model":camera_model, **rt}            
-         file.set_metadata(metadata)
-
-         x = R *np.cos(phi2) * np.cos(i*dtheta) #x pos of camera
-         y = R *np.cos(phi2) * np.sin(i*dtheta) #y pos of camera   
-         z = z0 + R *np.sin(phi2)
-         rx = - phi2*180/np.pi + 90 #camera tilt
-         rz = i*dtheta * 180/np.pi + 90 
-         im = self.get_mask(x, y, z, rx, ry, rz) #call blender 
-
-         file = fileset.create_file('cam2_%03d'%i)
-         file.write_image('png',im)
-
-         url_part = 'camera_intrinsics'
-         camera_model = json.loads(urllib.request.urlopen(self.localhost + url_part).read().decode('utf-8'))
-         url_part = 'camera_extrinsics'
-         rt = json.loads(urllib.request.urlopen(self.localhost + url_part).read().decode('utf-8'))
-         metadata = {"pose": [x, y, z, rx * np.pi/180, rz * np.pi/180], "camera_model":camera_model, **rt}            
-         file.set_metadata(metadata)
