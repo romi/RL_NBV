@@ -15,7 +15,7 @@ from mathutils import Matrix, Vector
 
 
 materials = ['Color_2', 'Color_0', 'Color_8', 'Color_1', 'Color_7']
-data_dir = "/home/david/data/dataset_arabidopsis3d"
+data_dir = os.getenv("HOME")+"/data/dataset_arabidopsis3d"
 pi = 3.14159265
 
 # BKE_camera_sensor_size
